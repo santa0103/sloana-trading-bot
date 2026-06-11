@@ -1,4 +1,5 @@
-import { PlaceholderPage } from "@/components/core/placeholder-page";
+import { BumpBotPage } from "@/components/dashboard/bump-bot/page";
+
 export default function Page() {
-  return <PlaceholderPage title="Bump Bot" description="Automated bump bot settings" />;
+  return <BumpBotPage />;
 }

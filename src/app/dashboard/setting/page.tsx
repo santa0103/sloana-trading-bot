@@ -1,4 +1,5 @@
-import { PlaceholderPage } from "@/components/core/placeholder-page";
+import { SettingPage } from "@/components/dashboard/setting/page";
+
 export default function Page() {
-  return <PlaceholderPage title="Settings" description="Configure your account and preferences" />;
+  return <SettingPage />;
 }

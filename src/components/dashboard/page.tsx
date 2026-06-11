@@ -1,6 +1,7 @@
 "use client";
 
 import { Package, Wallet, Rocket } from "lucide-react";
+import { SolanaIcon } from "@/components/core/solana-icon";
 
 function StatCard({
   title,
@@ -40,14 +41,14 @@ export function DashboardPage() {
               <div>
                 <p className="text-[10px] text-gray-400 mb-0.5">Last 30 days</p>
                 <p className="text-sm font-semibold flex items-center gap-1">
-                  <span className="text-green-500">≡</span> 0.00 ≈ $0.00
+                  <SolanaIcon size={13} /> 0.00 ≈ $0.00
                 </p>
                 <p className="text-[10px] text-gray-400">↑ +0.0%</p>
               </div>
               <div>
                 <p className="text-[10px] text-gray-400 mb-0.5">Today</p>
                 <p className="text-sm font-semibold flex items-center gap-1">
-                  <span className="text-green-500">≡</span> 0.00 ≈ $0.00
+                  <SolanaIcon size={13} /> 0.00 ≈ $0.00
                 </p>
                 <p className="text-[10px] text-gray-400">↑ +0.0 SOL</p>
               </div>
@@ -93,7 +94,7 @@ export function DashboardPage() {
 
           <StatCard title="Total Balance" icon={Wallet}>
             <p className="text-2xl font-bold text-gray-900 flex items-center gap-1">
-              <span className="text-green-500">≡</span> 0.000
+              <SolanaIcon size={18} /> 0.000
             </p>
             <p className="text-[11px] text-gray-400 mt-1">Main wallet balance</p>
           </StatCard>

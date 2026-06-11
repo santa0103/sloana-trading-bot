@@ -1,4 +1,5 @@
-import { PlaceholderPage } from "@/components/core/placeholder-page";
+import { SpamLaunchPage } from "@/components/dashboard/spam-lunch/page";
+
 export default function Page() {
-  return <PlaceholderPage title="Spam Launch" description="Automated spam launch tools" />;
+  return <SpamLaunchPage />;
 }

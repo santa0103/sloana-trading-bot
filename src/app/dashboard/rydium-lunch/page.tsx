@@ -1,4 +1,5 @@
-import { PlaceholderPage } from "@/components/core/placeholder-page";
+import { RaydiumLaunchPage } from "@/components/dashboard/rydium-lunch/page";
+
 export default function Page() {
-  return <PlaceholderPage title="Raydium Launch" description="Launch tokens on Raydium DEX" />;
+  return <RaydiumLaunchPage />;
 }
