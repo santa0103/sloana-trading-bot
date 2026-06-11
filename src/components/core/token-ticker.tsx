@@ -1,10 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { X } from "lucide-react";
 import { useRef } from "react";
 
-// Static token data — extend this list as new tokens are added
 const tokens = [
   { name: "CAINYARF", price: "$3.7K", img: "/token-imgs/bafybeiagmzymketzq35xc5ls36ioa2tuxaclz5brwzv7z3x74x3lval7m4.jpg" },
   { name: "GAFJOOK", price: "$284.4K", img: "/token-imgs/bafkreiaivsgzxur2d4sjbwxajyv6frmx2xgbij2wd6ypogkhtlzswmemhi.jpg" },
@@ -29,10 +27,10 @@ export function TokenTicker() {
   };
 
   return (
-    <div className="bg-white border-b border-gray-200 h-9 flex items-center">
+    <div className="bg-white border-b border-gray-200 h-[54px] flex items-center">
       {/* Label */}
       <div className="shrink-0 px-3 border-r border-gray-200 h-full flex items-center">
-        <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Trending</span>
+        <span className="text-[12px] font-semibold text-gray-500 uppercase tracking-wider">Trending</span>
       </div>
 
       {/* Scrollable tokens */}
@@ -45,21 +43,16 @@ export function TokenTicker() {
         {tokens.map((token) => (
           <div
             key={token.name}
-            className="flex items-center gap-1.5 shrink-0 px-2 py-1 rounded hover:bg-gray-100 cursor-pointer group transition-colors"
+            className="flex items-center gap-1.5 shrink-0 px-2 py-1 rounded hover:bg-gray-100 cursor-pointer transition-colors"
           >
-            <div className="w-5 h-5 rounded-full overflow-hidden shrink-0 bg-gray-200">
-              <Image src={token.img} alt={token.name} width={20} height={20} className="object-cover w-full h-full" />
+            <div className="w-[22px] h-[22px] rounded-full overflow-hidden shrink-0 bg-gray-200">
+              <Image src={token.img} alt={token.name} width={22} height={22} className="object-cover w-full h-full" />
             </div>
-            <span className="text-[11px] font-medium text-gray-700">{token.name}</span>
-            <span className="text-[11px] text-green-600 font-semibold">{token.price}</span>
+            <span className="text-[12px] font-medium text-gray-700">{token.name}</span>
+            <span className="text-[12px] text-green-600 font-semibold">{token.price}</span>
           </div>
         ))}
       </div>
-
-      {/* Close */}
-      <button className="shrink-0 px-3 h-full flex items-center border-l border-gray-200 text-gray-400 hover:text-gray-600 transition-colors">
-        <X size={14} />
-      </button>
     </div>
   );
 }

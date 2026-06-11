@@ -1,4 +1,5 @@
-import { PlaceholderPage } from "@/components/core/placeholder-page";
+import { BundlesPage } from "@/components/dashboard/bundles/page";
+
 export default function Page() {
-  return <PlaceholderPage title="Bundles" description="Manage your bundles" />;
+  return <BundlesPage />;
 }
