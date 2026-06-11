@@ -1,4 +1,5 @@
-import { PlaceholderPage } from "@/components/core/placeholder-page";
+import { TokenLaunchPage } from "@/components/dashboard/token-lunch/page";
+
 export default function Page() {
-  return <PlaceholderPage title="Token Launch" description="Launch new tokens on Solana" />;
+  return <TokenLaunchPage />;
 }

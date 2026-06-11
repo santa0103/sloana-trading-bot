@@ -1,4 +1,5 @@
-import { PlaceholderPage } from "@/components/core/placeholder-page";
+import { WalletsPage } from "@/components/dashboard/wallets/page";
+
 export default function Page() {
-  return <PlaceholderPage title="Wallets" description="Manage your Solana wallets" />;
+  return <WalletsPage />;
 }
