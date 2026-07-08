@@ -10,6 +10,18 @@ const SOL_PRICE = 64.0;
 const DAYS = ["M", "T", "W", "T", "F", "S", "S"];
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
+// Shared simulated SOL price hook
+function useSimulatedSolPrice() {
+  const [price, setPrice] = useState(64.0);
+  useEffect(() => {
+    const i = setInterval(() => {
+      setPrice(v => parseFloat((v * (1 + (Math.random() - 0.5) * 0.008)).toFixed(2)));
+    }, 2500);
+    return () => clearInterval(i);
+  }, []);
+  return price;
+}
+
 function getDaysInMonth(year: number, month: number) { return new Date(year, month + 1, 0).getDate(); }
 function getFirstDayOfMonth(year: number, month: number) { const d = new Date(year, month, 1).getDay(); return (d + 6) % 7; }
 
@@ -224,9 +236,10 @@ function PnlWidget({ onClose }: { onClose: () => void }) {
 function SupplyCalculator({ onClose }: { onClose: () => void }) {
   const [amount, setAmount] = useState("0");
   const ref = useRef<HTMLDivElement>(null);
+  const solPrice = useSimulatedSolPrice();
   const sol = parseFloat(amount) || 0;
   const supply = sol > 0 ? Math.min((sol / 85) * 100, 100) : 0;
-  const marketCap = sol * SOL_PRICE;
+  const marketCap = sol * solPrice;
   const tokens = Math.floor(sol * 1_000_000_000);
 
   useEffect(() => {
@@ -251,7 +264,7 @@ function SupplyCalculator({ onClose }: { onClose: () => void }) {
       </div>
       <div className="flex flex-col divide-y divide-gray-100">
         {[
-          { icon: <SolanaIcon size={13} />, label: "SOL Price", value: `$${SOL_PRICE.toFixed(1)}`, color: "text-gray-800" },
+          { icon: <SolanaIcon size={13} />, label: "SOL Price", value: `$${solPrice.toFixed(2)}`, color: "text-gray-800" },
           { icon: <Percent size={13} className="text-gray-400" />, label: "Supply", value: `${supply.toFixed(0)}%`, color: "text-green-500 font-semibold" },
           { icon: <BarChart2 size={13} className="text-gray-400" />, label: "Market Cap", value: `$${marketCap.toFixed(0)}`, color: "text-gray-800" },
           { icon: <Coins size={13} className="text-gray-400" />, label: "Tokens", value: tokens.toLocaleString(), color: "text-gray-800" },
@@ -273,6 +286,17 @@ export function FooterBar() {
   const [pnlOpen, setPnlOpen] = useState(false);
   const [calcOpen, setCalcOpen] = useState(false);
   const [calOpen, setCalOpen] = useState(false);
+  const [usdBalance, setUsdBalance] = useState(63.22);
+  const [solBalance, setSolBalance] = useState(33.314);
+
+  useEffect(() => {
+    // Simulate live balance fluctuation
+    const interval = setInterval(() => {
+      setUsdBalance(v => parseFloat((v * (1 + (Math.random() - 0.5) * 0.005)).toFixed(2)));
+      setSolBalance(v => parseFloat((v * (1 + (Math.random() - 0.5) * 0.003)).toFixed(3)));
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const onWithdraw = () => setWithdrawOpen(true);
@@ -324,11 +348,11 @@ export function FooterBar() {
         <div className="flex items-center gap-2 text-[12px]">
           <span className="flex items-center gap-1 border border-gray-200 rounded px-2 py-[3px]">
             <SolanaIcon size={13} />
-            <span className="text-gray-600">$63.22</span>
+            <span className="text-gray-600">${usdBalance.toFixed(2)}</span>
           </span>
           <span className="flex items-center gap-1 border border-gray-200 rounded px-2 py-[3px] text-gray-400">
             <Image src={downloadIcon} alt="sol" width={13} height={13} className="rounded-full object-cover" />
-            33.314
+            {solBalance.toFixed(3)}
           </span>
         </div>
 
