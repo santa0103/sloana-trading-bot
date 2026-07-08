@@ -8,7 +8,10 @@ type Tab = "all" | "groups";
 export function WalletsPage() {
   const [tab, setTab] = useState<Tab>("all");
   const [count, setCount] = useState(5);
+  const [walletList] = useState<string[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
+  const selectAll = () => setSelected([...walletList]);
+  const deselectAll = () => setSelected([]);
 
   return (
     <div className="flex flex-col gap-3">

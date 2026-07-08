@@ -96,19 +96,27 @@ export function Sidebar() {
 
       {/* Action bar */}
       <div className="border-t border-gray-200 px-[13px] py-[0px] flex items-center gap-1">
-        <button className="flex items-center gap-1 bg-green-100 hover:bg-green-200 text-green-600 text-[12px] font-medium px-3 py-[7px] rounded transition-colors">
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent("svarog:withdraw"))}
+          className="flex items-center gap-1 bg-green-100 hover:bg-green-200 text-green-600 text-[12px] font-medium px-3 py-[7px] rounded transition-colors">
           <DollarSign size={12} />
           Withdrawal
         </button>
         <div className="w-px h-[22px] bg-gray-200 mx-1" />
-        <button className="flex items-center gap-1 text-gray-500 hover:text-gray-700 text-[12px] px-[7px] py-[7px] rounded hover:bg-gray-100 transition-colors">
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent("svarog:pnl"))}
+          className="flex items-center gap-1 text-gray-500 hover:text-gray-700 text-[12px] px-[7px] py-[7px] rounded hover:bg-gray-100 transition-colors">
           <BarChart2 size={14} />
           PnL
         </button>
-        <button className="text-gray-400 hover:text-gray-600 p-[7px] rounded hover:bg-gray-100 transition-colors">
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent("svarog:calc"))}
+          className="text-gray-400 hover:text-gray-600 p-[7px] rounded hover:bg-gray-100 transition-colors">
           <Calculator size={14} />
         </button>
-        <button className="text-gray-400 hover:text-gray-600 p-[7px] rounded hover:bg-gray-100 transition-colors">
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent("svarog:calendar"))}
+          className="text-gray-400 hover:text-gray-600 p-[7px] rounded hover:bg-gray-100 transition-colors">
           <CalendarDays size={14} />
         </button>
       </div>

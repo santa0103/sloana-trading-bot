@@ -285,7 +285,19 @@ function NewBundleWizard({ onBack }: { onBack: () => void }) {
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const handleFile = (f: File) => { if (f) setPicture(f); };
-  const next = () => setStep(s => s + 1);
+  const [step1Errors, setStep1Errors] = useState<string[]>([]);
+
+  const next = () => {
+    if (step === 0) {
+      const errs: string[] = [];
+      if (!name.trim()) errs.push("Name is required");
+      if (!symbol.trim()) errs.push("Symbol is required");
+      if (!picture) errs.push("Image is required");
+      if (errs.length) { setStep1Errors(errs); return; }
+      setStep1Errors([]);
+    }
+    setStep(s => s + 1);
+  };
 
   return (
     <div className="py-4 px-4">
@@ -303,6 +315,13 @@ function NewBundleWizard({ onBack }: { onBack: () => void }) {
       {/* Rest — centered */}
       <div className="max-w-2xl mx-auto">
         <StepIndicator step={step} total={STEPS.length} />
+
+        {/* Validation errors */}
+        {step === 0 && step1Errors.length > 0 && (
+          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 flex flex-col gap-1">
+            {step1Errors.map(e => <p key={e} className="text-[12px] text-red-500">• {e}</p>)}
+          </div>
+        )}
 
         {/* Step 1 — Metadata */}
         {step === 0 && (

@@ -32,7 +32,7 @@ function WithdrawalModal({ onClose }: { onClose: () => void }) {
             <span className="text-[16px] font-bold text-gray-900">Withdrawal</span>
           </div>
           <div className="flex items-center gap-2">
-            <button className="text-gray-400 hover:text-gray-600 transition-colors"><Copy size={14} /></button>
+            <button onClick={() => navigator.clipboard.writeText("2P7b ... 9UH1")} className="text-gray-400 hover:text-gray-600 transition-colors"><Copy size={14} /></button>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors"><X size={14} /></button>
           </div>
         </div>
@@ -150,9 +150,17 @@ function PnlCalendar({ onClose }: { onClose: () => void }) {
 
 /* ── Draggable PnL Widget ── */
 function PnlWidget({ onClose }: { onClose: () => void }) {
-  const [pos, setPos] = useState({ x: window.innerWidth - 320, y: 80 });
+  const [pos, setPos] = useState({ x: 0, y: 80 });
+  const initialized = useRef(false);
   const dragging = useRef(false);
   const offset = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (!initialized.current) {
+      setPos({ x: window.innerWidth - 320, y: 80 });
+      initialized.current = true;
+    }
+  }, []);
 
   const onMouseDown = (e: React.MouseEvent) => {
     dragging.current = true;
@@ -265,6 +273,23 @@ export function FooterBar() {
   const [pnlOpen, setPnlOpen] = useState(false);
   const [calcOpen, setCalcOpen] = useState(false);
   const [calOpen, setCalOpen] = useState(false);
+
+  useEffect(() => {
+    const onWithdraw = () => setWithdrawOpen(true);
+    const onPnl = () => setPnlOpen(o => !o);
+    const onCalc = () => setCalcOpen(o => !o);
+    const onCal = () => setCalOpen(true);
+    window.addEventListener("svarog:withdraw", onWithdraw);
+    window.addEventListener("svarog:pnl", onPnl);
+    window.addEventListener("svarog:calc", onCalc);
+    window.addEventListener("svarog:calendar", onCal);
+    return () => {
+      window.removeEventListener("svarog:withdraw", onWithdraw);
+      window.removeEventListener("svarog:pnl", onPnl);
+      window.removeEventListener("svarog:calc", onCalc);
+      window.removeEventListener("svarog:calendar", onCal);
+    };
+  }, []);
 
   return (
     <>
