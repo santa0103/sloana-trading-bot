@@ -90,13 +90,14 @@ export function RaydiumLaunchPage() {
       {/* Header */}
       <div className="flex items-start justify-between mb-5">
         <div className="flex items-center gap-2">
-          <button className="text-gray-400 hover:text-gray-600 transition-colors"><ArrowLeft size={16} /></button>
+          <button onClick={() => window.history.back()} className="text-gray-400 hover:text-gray-600 transition-colors"><ArrowLeft size={16} /></button>
           <div>
             <h1 className="text-lg font-semibold text-gray-900">Raydium Launch</h1>
             <p className="text-[12px] text-gray-400">Create a token first, then add Raydium liquidity from the terminal.</p>
           </div>
         </div>
-        <button className="flex items-center gap-1.5 border border-gray-200 rounded px-3 py-1.5 text-[12px] text-gray-600 hover:bg-gray-50 transition-colors">
+        <button onClick={() => window.open("/dashboard/wallets", "_self")}
+          className="flex items-center gap-1.5 border border-gray-200 rounded px-3 py-1.5 text-[12px] text-gray-600 hover:bg-gray-50 transition-colors">
           <Wallet size={13} /> Wallets
         </button>
       </div>
@@ -243,7 +244,8 @@ export function RaydiumLaunchPage() {
                 <select className="flex-1 border border-gray-200 rounded px-3 py-1.5 text-[12px] bg-gray-50 focus:outline-none focus:border-green-400 transition-colors text-gray-400">
                   <option>No app wallets found</option>
                 </select>
-                <button className="flex items-center gap-1.5 border border-gray-200 rounded px-3 py-1.5 text-[12px] text-gray-600 hover:bg-gray-50 transition-colors">
+                <button onClick={() => window.open("/dashboard/wallets", "_self")}
+                  className="flex items-center gap-1.5 border border-gray-200 rounded px-3 py-1.5 text-[12px] text-gray-600 hover:bg-gray-50 transition-colors">
                   <Wallet size={12} /> Wallets
                 </button>
               </div>

@@ -196,7 +196,8 @@ function GeneralTab() {
           <div className="flex items-center gap-1.5">
             <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Tutorial</span>
             <Info size={11} className="text-gray-300" />
-            <button className="flex items-center gap-1 border border-gray-200 rounded px-2.5 py-1 text-[11px] text-gray-600 hover:bg-gray-50 transition-colors">
+            <button onClick={() => { alert("Tutorial: Use the sidebar to navigate between pages. Each page has its own workflow — Token Launch for creating tokens, Wallets for managing keypairs, Bump Bot for automated trading."); }}
+              className="flex items-center gap-1 border border-gray-200 rounded px-2.5 py-1 text-[11px] text-gray-600 hover:bg-gray-50 transition-colors">
               <RotateCcw size={11} /> Start Tutorial
             </button>
           </div>
@@ -209,9 +210,57 @@ function GeneralTab() {
 /* ── Quick Actions ── */
 function QuickActionsTab() {
   const [sellMode, setSellMode] = useState<"percentage" | "sol">("percentage");
-  const sellPct = ["25%", "50%", "75%", "100%"];
-  const sellSol = ["0.1", "0.25", "0.5", "1"];
-  const buySol = ["0.1", "0.25", "0.5", "1"];
+  const [sellPct, setSellPct] = useState(["25%", "50%", "75%", "100%"]);
+  const [sellSol, setSellSol] = useState(["0.1", "0.25", "0.5", "1"]);
+  const [buySol, setBuySol] = useState(["0.1", "0.25", "0.5", "1"]);
+  const [editing, setEditing] = useState<{ group: string; idx: number; val: string } | null>(null);
+
+  const DEFAULT = {
+    sellPct: ["25%", "50%", "75%", "100%"],
+    sellSol: ["0.1", "0.25", "0.5", "1"],
+    buySol:  ["0.1", "0.25", "0.5", "1"],
+  };
+
+  const handleReset = () => { setSellPct(DEFAULT.sellPct); setSellSol(DEFAULT.sellSol); setBuySol(DEFAULT.buySol); };
+
+  const startEdit = (group: string, idx: number, val: string) => setEditing({ group, idx, val });
+
+  const commitEdit = () => {
+    if (!editing) return;
+    const v = editing.val.trim();
+    if (editing.group === "sellPct") setSellPct(p => p.map((x, i) => i === editing.idx ? v : x));
+    if (editing.group === "sellSol") setSellSol(p => p.map((x, i) => i === editing.idx ? v : x));
+    if (editing.group === "buySol")  setBuySol(p => p.map((x, i) => i === editing.idx ? v : x));
+    setEditing(null);
+  };
+
+  const renderGroup = (label: string, values: string[], group: string, color: string, bg: string, border: string, badge?: string) => (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-1.5">
+          <span className={`text-[12px] font-semibold ${color}`}>{label}</span>
+          {badge && <span className="text-[9px] bg-red-100 text-red-400 px-1.5 py-0.5 rounded font-medium">{badge}</span>}
+        </div>
+        <button onClick={() => startEdit(group, 0, values[0])}
+          className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-gray-600">
+          <Pencil size={10} /> Edit
+        </button>
+      </div>
+      <div className="flex gap-1 flex-wrap">
+        {values.map((v, i) => (
+          editing?.group === group && editing.idx === i ? (
+            <input key={i} autoFocus value={editing.val}
+              onChange={e => setEditing(prev => prev ? { ...prev, val: e.target.value } : null)}
+              onBlur={commitEdit} onKeyDown={e => { if (e.key === "Enter") commitEdit(); if (e.key === "Escape") setEditing(null); }}
+              className={`w-14 px-1.5 py-0.5 border-2 border-green-400 rounded text-[11px] ${color} bg-white focus:outline-none`} />
+          ) : (
+            <button key={i} onClick={() => startEdit(group, i, v)}
+              className={`px-2.5 py-1 ${bg} ${color} border ${border} rounded text-[11px] font-medium hover:opacity-80 transition-opacity`}>{v}</button>
+          )
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -222,12 +271,10 @@ function QuickActionsTab() {
             <p className="text-[13px] font-semibold text-gray-800">Quick Actions</p>
             <p className="text-[11px] text-gray-400">Configure percentage buttons for Swap Manager</p>
           </div>
-          <button className="flex items-center gap-1 border border-gray-200 rounded px-2.5 py-1 text-[11px] text-gray-600 hover:bg-gray-50 transition-colors">
+          <button onClick={handleReset} className="flex items-center gap-1 border border-gray-200 rounded px-2.5 py-1 text-[11px] text-gray-600 hover:bg-gray-50 transition-colors">
             <RotateCcw size={11} /> Reset
           </button>
         </div>
-
-        {/* Default Sell Mode */}
         <div className="flex items-center gap-2 mb-4">
           <span className="text-[11px] text-gray-500">Default Sell Mode:</span>
           <div className="flex gap-1">
@@ -239,42 +286,12 @@ function QuickActionsTab() {
             ))}
           </div>
         </div>
-
         <div className="grid grid-cols-3 gap-6">
-          {/* Sell % */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[12px] font-semibold text-red-500">Sell %</span>
-                <span className="text-[9px] bg-red-100 text-red-400 px-1.5 py-0.5 rounded font-medium">Active</span>
-              </div>
-              <button className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-gray-600"><Pencil size={10} /> Edit</button>
-            </div>
-            <div className="flex gap-1 flex-wrap">
-              {sellPct.map(v => <span key={v} className="px-2.5 py-1 bg-red-50 text-red-400 border border-red-100 rounded text-[11px] font-medium">{v}</span>)}
-            </div>
-          </div>
-          {/* Sell SOL */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[12px] font-semibold text-red-500">Sell SOL</span>
-              <button className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-gray-600"><Pencil size={10} /> Edit</button>
-            </div>
-            <div className="flex gap-1 flex-wrap">
-              {sellSol.map(v => <span key={v} className="px-2.5 py-1 bg-red-50 text-red-400 border border-red-100 rounded text-[11px] font-medium">{v}</span>)}
-            </div>
-          </div>
-          {/* Buy SOL */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[12px] font-semibold text-green-500">Buy SOL</span>
-              <button className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-gray-600"><Pencil size={10} /> Edit</button>
-            </div>
-            <div className="flex gap-1 flex-wrap">
-              {buySol.map(v => <span key={v} className="px-2.5 py-1 bg-green-50 text-green-500 border border-green-100 rounded text-[11px] font-medium">{v}</span>)}
-            </div>
-          </div>
+          {renderGroup("Sell %", sellPct, "sellPct", "text-red-500", "bg-red-50", "border-red-100", "Active")}
+          {renderGroup("Sell SOL", sellSol, "sellSol", "text-red-500", "bg-red-50", "border-red-100")}
+          {renderGroup("Buy SOL", buySol, "buySol", "text-green-500", "bg-green-50", "border-green-100")}
         </div>
+        <p className="text-[10px] text-gray-400 mt-3">Click any value to edit it inline. Press Enter or click away to save.</p>
       </div>
     </div>
   );

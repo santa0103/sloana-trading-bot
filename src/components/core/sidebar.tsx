@@ -99,7 +99,10 @@ export function Sidebar() {
           </div>
           <span className="text-gray-700 text-[13px] font-medium">2P7b…9UH1</span>
         </div>
-        <button className="text-gray-400 hover:text-gray-600 transition-colors">
+        <button
+          onClick={() => { if (confirm("Disconnect wallet and sign out?")) window.location.href = "/auth/sign-in"; }}
+          className="text-gray-400 hover:text-red-500 transition-colors"
+          title="Sign out">
           <LogOut size={15} />
         </button>
       </div>

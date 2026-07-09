@@ -98,11 +98,13 @@ function WithdrawalModal({ onClose }: { onClose: () => void }) {
         </button>
 
         {/* Claim buttons */}
-        <button className="w-full flex items-center justify-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-700 text-[13px] font-medium py-2.5 rounded-xl transition-colors mb-2">
+        <button onClick={() => { alert("Creator Rewards: No rewards to claim yet. Rewards accumulate when traders use tokens you've launched."); }}
+          className="w-full flex items-center justify-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-700 text-[13px] font-medium py-2.5 rounded-xl transition-colors mb-2">
           <Gift size={14} className="text-gray-500" />
           Claim Creator Rewards
         </button>
-        <button className="w-full flex items-center justify-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-700 text-[13px] font-medium py-2.5 rounded-xl transition-colors mb-4">
+        <button onClick={() => { alert("Wallet Cashback: No cashback available yet. Cashback is earned from trading fees on bundled wallet activity."); }}
+          className="w-full flex items-center justify-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-700 text-[13px] font-medium py-2.5 rounded-xl transition-colors mb-4">
           <Gift size={14} className="text-gray-500" />
           Claim Wallets Cashback
         </button>
@@ -375,7 +377,8 @@ export function FooterBar() {
         </div>
 
         <div className="flex items-center gap-2 text-[12px]">
-          <button className="border border-gray-200 rounded p-[4px] text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors">
+          <button onClick={() => alert("Notifications: No new notifications.")}
+            className="border border-gray-200 rounded p-[4px] text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors">
             <Bell size={13} />
           </button>
           <span className="text-gray-400">EU-C 30as</span>

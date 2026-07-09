@@ -551,7 +551,11 @@ export function TokenLaunchPage() {
       <p className="text-sm text-gray-500 mb-10">Create and bundle your token on Pump.Fun</p>
       <div className="grid grid-cols-3 gap-4 w-full max-w-2xl">
         {options.map(({ key, icon: Icon, title, description }) => (
-          <button key={key} onClick={() => key === "new-bundle" && setView("new-bundle")}
+          <button key={key} onClick={() => {
+            if (key === "new-bundle") setView("new-bundle");
+            else if (key === "vamp") alert("VAMP: Copy any existing token's metadata and launch your own. Coming soon — this feature requires a token CA to copy from.");
+            else if (key === "cto") alert("CTO (Community Takeover): Take over an existing token with your own bundled wallets. Coming soon.");
+          }}
             className="flex flex-col items-center text-center p-6 bg-white border border-gray-200 rounded-lg hover:border-green-300 hover:shadow-sm transition-all group">
             <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mb-4 group-hover:bg-green-100 transition-colors">
               <Icon size={24} className="text-green-500" />

@@ -58,7 +58,8 @@ export function SpamLaunchPage() {
           <h1 className="text-base font-semibold text-gray-900">Spam Launch</h1>
           <p className="text-[11px] text-gray-400">Create many small deploys from new wallets with controlled delay.</p>
         </div>
-        <button className="flex items-center gap-1.5 border border-gray-200 rounded px-3 py-1 text-[11px] text-gray-600 hover:bg-gray-50 transition-colors">
+        <button onClick={() => fetch("/api/spam-launch").then(r => r.json()).then(d => setBatches(d.batches || []))}
+          className="flex items-center gap-1.5 border border-gray-200 rounded px-3 py-1 text-[11px] text-gray-600 hover:bg-gray-50 transition-colors">
           <RefreshCw size={11} />
           Refresh
         </button>
