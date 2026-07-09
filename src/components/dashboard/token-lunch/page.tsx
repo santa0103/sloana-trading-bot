@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Rocket, Cpu, Users, ArrowLeft, Upload, Plus, RefreshCw, Globe, Send, Download, Wallet, Shield, Zap, CheckCircle, Clock, Copy } from "lucide-react";
 
 const STEPS = ["Metadata", "Buy Mode", "Wallets", "Settings", "Review"];
@@ -53,35 +53,134 @@ function Step2BuyMode({ onContinue }: { onContinue: () => void }) {
 
 /* ── Step 3: Wallets ── */
 function Step3Wallets({ onContinue }: { onContinue: () => void }) {
+  const [walletList, setWalletList] = useState<Array<{ id: string; publicKey: string; label: string }>>([]);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const importRef = useRef<HTMLInputElement>(null);
+
+  const loadWallets = async () => {
+    const res = await fetch("/api/wallets");
+    const data = await res.json();
+    setWalletList(data.wallets || []);
+  };
+
+  useEffect(() => { loadWallets(); }, []);
+
+  const addDev = async () => {
+    setLoading(true);
+    await fetch("/api/wallets", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "generate", count: 1, label: "Dev Wallet" }) });
+    await loadWallets();
+    setLoading(false);
+  };
+
+  const createWallets = async () => {
+    setLoading(true);
+    await fetch("/api/wallets", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "generate", count: 5 }) });
+    await loadWallets();
+    setLoading(false);
+  };
+
+  const handleDelete = async () => {
+    if (!selected.length) return;
+    setLoading(true);
+    await fetch("/api/wallets", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete", ids: selected }) });
+    setSelected([]);
+    await loadWallets();
+    setLoading(false);
+  };
+
+  const handleExport = () => {
+    const data = walletList.map(w => ({ id: w.id, publicKey: w.publicKey, label: w.label }));
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "wallets.json"; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      try {
+        const imported = JSON.parse(ev.target?.result as string);
+        // For demo: just reload wallets list
+        await loadWallets();
+      } catch { /* ignore parse errors */ }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       {/* Toolbar */}
       <div className="flex items-center gap-2 flex-wrap">
-        {[
-          { icon: <Plus size={11} />, label: "Dev" },
-          { icon: <RefreshCw size={11} />, label: "Create" },
-          { icon: <Globe size={11} />, label: "My Wallets" },
-          { icon: <Send size={11} />, label: "Fund" },
-          { icon: <Upload size={11} />, label: "Import" },
-          { icon: <Download size={11} />, label: "Export" },
-        ].map(({ icon, label }) => (
-          <button key={label} className="flex items-center gap-1.5 border border-gray-200 rounded px-3 py-1.5 text-[12px] text-gray-600 hover:bg-gray-50 transition-colors">
-            {icon}{label}
+        <button onClick={addDev} disabled={loading}
+          className="flex items-center gap-1.5 border border-gray-200 rounded px-3 py-1.5 text-[12px] text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors">
+          <Plus size={11} /> Dev
+        </button>
+        <button onClick={createWallets} disabled={loading}
+          className="flex items-center gap-1.5 border border-gray-200 rounded px-3 py-1.5 text-[12px] text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors">
+          <RefreshCw size={11} className={loading ? "animate-spin" : ""} /> Create
+        </button>
+        <button onClick={loadWallets}
+          className="flex items-center gap-1.5 border border-gray-200 rounded px-3 py-1.5 text-[12px] text-gray-600 hover:bg-gray-50 transition-colors">
+          <Globe size={11} /> My Wallets
+        </button>
+        <button disabled={!walletList.length}
+          className="flex items-center gap-1.5 border border-gray-200 rounded px-3 py-1.5 text-[12px] text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors">
+          <Send size={11} /> Fund
+        </button>
+        <button onClick={() => importRef.current?.click()}
+          className="flex items-center gap-1.5 border border-gray-200 rounded px-3 py-1.5 text-[12px] text-gray-600 hover:bg-gray-50 transition-colors">
+          <Upload size={11} /> Import
+        </button>
+        <button onClick={handleExport} disabled={!walletList.length}
+          className="flex items-center gap-1.5 border border-gray-200 rounded px-3 py-1.5 text-[12px] text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors">
+          <Download size={11} /> Export
+        </button>
+        {selected.length > 0 && (
+          <button onClick={handleDelete}
+            className="flex items-center gap-1.5 border border-red-200 rounded px-3 py-1.5 text-[12px] text-red-500 hover:bg-red-50 transition-colors">
+            Delete ({selected.length})
           </button>
-        ))}
+        )}
+        <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
       </div>
 
       {/* Wallets area */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[12px] text-gray-500">Wallets (0)</span>
-          <span className="text-[12px] text-gray-400">0 selected</span>
+          <span className="text-[12px] text-gray-500">Wallets ({walletList.length})</span>
+          <span className="text-[12px] text-gray-400">{selected.length} selected</span>
         </div>
-        <div className="border border-gray-200 rounded-lg flex flex-col items-center justify-center py-16 gap-2 bg-white">
-          <Wallet size={32} className="text-gray-300" />
-          <p className="text-[13px] text-gray-400 font-medium">No wallets added yet</p>
-          <p className="text-[11px] text-gray-300">Click +Dev or Create to add wallets</p>
-        </div>
+        {walletList.length === 0 ? (
+          <div className="border border-gray-200 rounded-lg flex flex-col items-center justify-center py-16 gap-2 bg-white">
+            <Wallet size={32} className="text-gray-300" />
+            <p className="text-[13px] text-gray-400 font-medium">No wallets added yet</p>
+            <p className="text-[11px] text-gray-300">Click +Dev or Create to add wallets</p>
+          </div>
+        ) : (
+          <div className="border border-gray-200 rounded-lg bg-white divide-y divide-gray-100 max-h-48 overflow-y-auto">
+            {walletList.map(w => (
+              <div key={w.id} className="flex items-center gap-3 px-4 py-2.5">
+                <input type="checkbox" checked={selected.includes(w.id)}
+                  onChange={e => setSelected(prev => e.target.checked ? [...prev, w.id] : prev.filter(id => id !== w.id))}
+                  className="accent-green-500 w-3.5 h-3.5 cursor-pointer" />
+                <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-[10px] font-bold text-green-600 shrink-0">
+                  {w.label.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-medium text-gray-700 truncate">{w.label}</p>
+                  <p className="text-[10px] text-gray-400 font-mono">{w.publicKey.slice(0, 16)}…{w.publicKey.slice(-8)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       <button onClick={onContinue} className="w-full bg-green-500 hover:bg-green-600 text-white text-[13px] font-semibold py-2.5 rounded-lg transition-colors">Continue</button>
     </div>
