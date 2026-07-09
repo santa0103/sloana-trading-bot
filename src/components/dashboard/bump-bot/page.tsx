@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Zap, Plus, Search } from "lucide-react";
 import { SolanaIcon } from "@/components/core/solana-icon";
+import { createBumpBot, fetchBumpBots } from "@/lib/api";
 
 type Mode = "custom" | "bundle";
 const WALLET_OPTIONS = [5, 10, 15, 20, 25];
@@ -18,6 +19,9 @@ export function BumpBotPage() {
   const [wallets, setWallets] = useState(10);
   const [speed, setSpeed] = useState("moderate");
   const [budget, setBudget] = useState("0.5");
+  const [activeBots, setActiveBots] = useState<Array<{ id: string; tokenAddress: string; status: string; bumpsExecuted: number }>>([]);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState("");
 
   const budgetNum = parseFloat(budget) || 0;
   const bumpSize = 0.003;
@@ -25,6 +29,24 @@ export function BumpBotPage() {
   const bumpsPerHour = speed === "gentle" ? 30 : speed === "moderate" ? 120 : 300;
   const totalBumps = budgetNum > 0 ? Math.floor(budgetNum / costPerBump) : 0;
   const willLast = bumpsPerHour > 0 ? (totalBumps / bumpsPerHour).toFixed(1) : "0";
+
+  useEffect(() => {
+    fetchBumpBots().then(setActiveBots);
+  }, []);
+
+  const handleCreate = async () => {
+    if (!tokenAddress.trim()) { setCreateError("Token address is required"); return; }
+    setCreateError("");
+    setCreating(true);
+    const result = await createBumpBot({ tokenAddress, wallets, speed, budget: budgetNum });
+    setCreating(false);
+    if (result.bot) {
+      setActiveBots(prev => [...prev, result.bot]);
+      setTokenAddress("");
+    } else {
+      setCreateError(result.error || "Failed to create bot");
+    }
+  };
 
   return (
     <div className="flex gap-3 mx-auto max-w-3xl">
@@ -142,9 +164,11 @@ export function BumpBotPage() {
         </div>
 
         {/* Submit */}
-        <button className="w-full flex items-center justify-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-[12px] font-medium py-2 rounded-lg transition-colors">
-          <Plus size={12} /> Create Bump Bot
+        <button onClick={handleCreate} disabled={creating}
+          className="w-full flex items-center justify-center gap-1.5 bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white text-[12px] font-medium py-2 rounded-lg transition-colors">
+          <Plus size={12} /> {creating ? "Creating..." : "Create Bump Bot"}
         </button>
+        {createError && <p className="text-[11px] text-red-500 text-center">{createError}</p>}
       </div>
 
       {/* Right — Active bots */}
@@ -152,12 +176,29 @@ export function BumpBotPage() {
         <div className="flex items-center gap-1.5 mb-3">
           <Zap size={12} className="text-gray-500" />
           <span className="text-[12px] font-semibold text-gray-800">Active Bots</span>
+          {activeBots.length > 0 && (
+            <span className="ml-auto text-[10px] bg-green-100 text-green-600 px-1.5 py-0.5 rounded-full font-medium">{activeBots.length}</span>
+          )}
         </div>
-        <div className="flex flex-col items-center justify-center h-40 gap-2">
-          <Zap size={24} className="text-gray-200" />
-          <p className="text-[11px] text-gray-400 font-medium">No active bump bots</p>
-          <p className="text-[10px] text-gray-300">Create one to get started</p>
-        </div>
+        {activeBots.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-40 gap-2">
+            <Zap size={24} className="text-gray-200" />
+            <p className="text-[11px] text-gray-400 font-medium">No active bump bots</p>
+            <p className="text-[10px] text-gray-300">Create one to get started</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {activeBots.map(bot => (
+              <div key={bot.id} className="border border-gray-200 rounded-lg p-2.5 bg-green-50">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-mono text-gray-500">{bot.tokenAddress.slice(0, 8)}…</span>
+                  <span className="text-[9px] bg-green-500 text-white px-1.5 py-0.5 rounded-full">{bot.status}</span>
+                </div>
+                <p className="text-[10px] text-gray-400">Bumps: {bot.bumpsExecuted}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -2,16 +2,9 @@
 
 import { Package, Wallet, Rocket } from "lucide-react";
 import { SolanaIcon } from "@/components/core/solana-icon";
+import { useState, useEffect } from "react";
 
-function StatCard({
-  title,
-  icon: Icon,
-  children,
-}: {
-  title: string;
-  icon: React.ElementType;
-  children: React.ReactNode;
-}) {
+function StatCard({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4">
       <div className="flex items-center justify-between mb-3">
@@ -24,6 +17,17 @@ function StatCard({
 }
 
 export function DashboardPage() {
+  const [solPrice, setSolPrice] = useState(64);
+
+  useEffect(() => {
+    fetch("/api/sol-price")
+      .then(r => r.json())
+      .then(d => { if (d.price) setSolPrice(d.price); });
+    const i = setInterval(() => {
+      fetch("/api/sol-price").then(r => r.json()).then(d => { if (d.price) setSolPrice(d.price); });
+    }, 15000);
+    return () => clearInterval(i);
+  }, []);
   return (
     <div className="max-w-full">
       <h1 className="text-xl font-semibold text-gray-900 mb-1">Dashboard</h1>
@@ -96,7 +100,7 @@ export function DashboardPage() {
             <p className="text-2xl font-bold text-gray-900 flex items-center gap-1">
               <SolanaIcon size={18} /> 0.000
             </p>
-            <p className="text-[11px] text-gray-400 mt-1">Main wallet balance</p>
+            <p className="text-[11px] text-gray-400 mt-1">1 SOL ≈ ${solPrice.toFixed(2)}</p>
           </StatCard>
         </div>
       </div>

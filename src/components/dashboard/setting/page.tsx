@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Wallet, Shield, Copy, Sparkles, Settings, Zap, Activity, RefreshCw, Info, RotateCcw, Pencil } from "lucide-react";
 
 type Tab = "account" | "referral" | "general" | "quick-actions" | "activity";
@@ -78,6 +78,35 @@ function GeneralTab() {
   const [terminal, setTerminal] = useState("axiom");
   const [notifications, setNotifications] = useState(true);
   const [newUserMode, setNewUserMode] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/settings").then(r => r.json()).then(d => {
+      if (!d.settings) return;
+      const s = d.settings;
+      setSellSlippage(String(s.sellSlippage ?? 25));
+      setBuySlippage(String(s.buySlippage ?? 25));
+      setSniperTip(String(s.sniperTip ?? 0.002));
+      setBundleTip(String(s.bundleTip ?? 0.002));
+      setTerminal(s.terminal ?? "axiom");
+      setNotifications(s.notifications ?? true);
+      setNewUserMode(s.newUserMode ?? false);
+      setSelectedTheme(s.theme ?? "light");
+    });
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    await fetch("/api/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sellSlippage: Number(sellSlippage), buySlippage: Number(buySlippage), sniperTip: Number(sniperTip), bundleTip: Number(bundleTip), terminal, notifications, newUserMode, theme: selectedTheme }),
+    });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -122,8 +151,12 @@ function GeneralTab() {
             </div>
           ))}
           <div className="flex gap-2 mt-4">
-            <button className="flex-1 bg-green-500 hover:bg-green-600 text-white text-[12px] font-medium py-2 rounded transition-colors">Save Swap Settings</button>
-            <button className="border border-gray-200 hover:bg-gray-50 text-[12px] text-gray-600 px-3 py-2 rounded transition-colors">Reset</button>
+            <button onClick={handleSave} disabled={saving}
+              className="flex-1 bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white text-[12px] font-medium py-2 rounded transition-colors">
+              {saving ? "Saving..." : saved ? "Saved ✓" : "Save Swap Settings"}
+            </button>
+            <button onClick={() => { setSellSlippage("25"); setBuySlippage("25"); setSniperTip("0.002"); setBundleTip("0.002"); }}
+              className="border border-gray-200 hover:bg-gray-50 text-[12px] text-gray-600 px-3 py-2 rounded transition-colors">Reset</button>
           </div>
         </div>
       </div>

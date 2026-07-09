@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { ArrowLeft, ArrowRight, Wallet, Waves, Upload, Info, Coins, Shield, CheckCircle, AlertTriangle } from "lucide-react";
+import { useState, useRef } from "react";
 
 const STEPS = ["Token basics", "Supply", "Create"];
 
@@ -30,6 +31,9 @@ export function RaydiumLaunchPage() {
   const [revokeMint, setRevokeMint] = useState(true);
   const [revokeUpdate, setRevokeUpdate] = useState(true);
   const [modifyCreator, setModifyCreator] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState<{ id: string; txSignature: string | null } | null>(null);
+  const [submitError, setSubmitError] = useState("");
 
   const handleFile = (file: File) => { if (file) setPicture(file); };
 
@@ -55,6 +59,20 @@ export function RaydiumLaunchPage() {
     if (e.length) { setErrors(e); return; }
     setErrors([]);
     setStep(s => s + 1);
+  };
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    setSubmitError("");
+    const res = await fetch("/api/raydium-launch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, symbol, decimals, totalSupply, description: tokenDesc, website, xUrl, telegram, discord }),
+    });
+    const data = await res.json();
+    setSubmitting(false);
+    if (data.launch) setSubmitted(data.launch);
+    else setSubmitError(data.error || "Submission failed");
   };
 
   const goPrev = () => { setErrors([]); setStep(s => Math.max(0, s - 1)); };
@@ -295,10 +313,19 @@ export function RaydiumLaunchPage() {
             className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-[13px] font-medium px-8 py-2 rounded transition-colors">
             Next <ArrowRight size={13} />
           </button>
+        ) : submitted ? (
+          <div className="flex items-center gap-2 bg-green-50 border border-green-300 rounded-lg px-4 py-2">
+            <CheckCircle size={14} className="text-green-500" />
+            <span className="text-[12px] text-green-700 font-medium">Token created! ID: {submitted.id}</span>
+          </div>
         ) : (
-          <button className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-[13px] font-medium px-6 py-2 rounded transition-colors">
-            <Waves size={13} /> Pay Create Fee
-          </button>
+          <div className="flex flex-col items-end gap-1">
+            {submitError && <p className="text-[11px] text-red-500">{submitError}</p>}
+            <button onClick={handleSubmit} disabled={submitting}
+              className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white text-[13px] font-medium px-6 py-2 rounded transition-colors">
+              <Waves size={13} /> {submitting ? "Submitting..." : "Pay Create Fee"}
+            </button>
+          </div>
         )}
       </div>
     </div>

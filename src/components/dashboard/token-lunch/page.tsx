@@ -184,8 +184,14 @@ function Step4Settings({ onContinue }: { onContinue: () => void }) {
 }
 
 /* ── Step 5: Review ── */
-function Step5Review({ name, launchMode }: { name: string; launchMode: string }) {
+function Step5Review({ name, symbol, launchMode, description, website, xUrl, telegram }: {
+  name: string; symbol: string; launchMode: string;
+  description?: string; website?: string; xUrl?: string; telegram?: string;
+}) {
   const [mintSuffix, setMintSuffix] = useState<"pump" | "default" | "custom">("pump");
+  const [launching, setLaunching] = useState(false);
+  const [launched, setLaunched] = useState<{ id: string; txSignature: string | null } | null>(null);
+  const [error, setError] = useState("");
   const ca = "YfKGak5vm3NuRWmCzj3jgj9DKb8QGkNZPsEgsdGpump";
 
   const checklist = [
@@ -196,6 +202,23 @@ function Step5Review({ name, launchMode }: { name: string; launchMode: string })
     { label: "Settings configured", ok: true },
     { label: "Wallet keys backed up", ok: false },
   ];
+
+  const handleLaunch = async () => {
+    setLaunching(true);
+    setError("");
+    const res = await fetch("/api/token-launch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, symbol, launchMode, description, website, xUrl, telegram }),
+    });
+    const data = await res.json();
+    setLaunching(false);
+    if (data.launch) {
+      setLaunched(data.launch);
+    } else {
+      setError(data.error || "Launch failed");
+    }
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -263,9 +286,24 @@ function Step5Review({ name, launchMode }: { name: string; launchMode: string })
         </div>
       </div>
 
-      <button className="w-full bg-green-500 hover:bg-green-600 text-white text-[13px] font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
-        <Rocket size={14} /> Launch Token
-      </button>
+      {launched ? (
+        <div className="bg-green-50 border border-green-300 rounded-lg p-4 text-center">
+          <CheckCircle size={20} className="text-green-500 mx-auto mb-2" />
+          <p className="text-[13px] font-semibold text-green-700">Token launch submitted!</p>
+          <p className="text-[11px] text-gray-500 mt-1">ID: {launched.id}</p>
+          {launched.txSignature && (
+            <p className="text-[10px] font-mono text-gray-400 mt-1 break-all">{launched.txSignature}</p>
+          )}
+        </div>
+      ) : (
+        <>
+          {error && <p className="text-[12px] text-red-500 text-center">{error}</p>}
+          <button onClick={handleLaunch} disabled={launching}
+            className="w-full bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white text-[13px] font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
+            <Rocket size={14} /> {launching ? "Launching..." : "Launch Token"}
+          </button>
+        </>
+      )}
     </div>
   );
 }
@@ -392,7 +430,7 @@ function NewBundleWizard({ onBack }: { onBack: () => void }) {
         {step === 1 && <Step2BuyMode onContinue={next} />}
         {step === 2 && <Step3Wallets onContinue={next} />}
         {step === 3 && <Step4Settings onContinue={next} />}
-        {step === 4 && <Step5Review name={name} launchMode={launchMode} />}
+        {step === 4 && <Step5Review name={name} symbol={symbol} launchMode={launchMode} description={description} website={website} xUrl={xUrl} telegram={telegram} />}
       </div>
     </div>
   );

@@ -2,22 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 import {
-  LayoutDashboard,
-  Rocket,
-  Waves,
-  MessageSquare,
-  Package,
-  Wallet,
-  TrendingUp,
-  Settings,
-  LogOut,
-  RefreshCw,
-  DollarSign,
-  BarChart2,
-  Calculator,
-  CalendarDays,
-  X,
+  LayoutDashboard, Rocket, Waves, MessageSquare, Package,
+  Wallet, TrendingUp, Settings, LogOut, RefreshCw,
+  DollarSign, BarChart2, Calculator, CalendarDays, X,
 } from "lucide-react";
 import { paths } from "@/paths";
 import { SolanaIcon } from "@/components/core/solana-icon";
@@ -35,6 +24,25 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [solBalance, setSolBalance] = useState<number | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Demo wallet address — in production this comes from wallet adapter
+  const DEMO_ADDRESS = "2P7bFxRkJt9KrQanSqYXRcF8fBopzLHYxdM65zcjm";
+
+  const loadBalance = async () => {
+    setRefreshing(true);
+    try {
+      const res = await fetch(`/api/balance?address=${DEMO_ADDRESS}`);
+      const data = await res.json();
+      if (typeof data.balance === "number") setSolBalance(data.balance);
+    } catch {
+      // keep current value
+    }
+    setRefreshing(false);
+  };
+
+  useEffect(() => { loadBalance(); }, []);
 
   return (
     <aside className="flex flex-col w-[176px] min-h-screen bg-white text-black shrink-0 border-r border-gray-200">
@@ -50,13 +58,15 @@ export function Sidebar() {
       <div className="px-[18px] py-[13px] border-b border-gray-200">
         <div className="flex items-center justify-between mb-1">
           <p className="text-gray-400 text-[11px] uppercase tracking-widest">Total Balance</p>
-          <button className="text-gray-400 hover:text-gray-600 transition-colors">
-            <RefreshCw size={13} />
+          <button onClick={loadBalance} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <RefreshCw size={13} className={refreshing ? "animate-spin" : ""} />
           </button>
         </div>
         <div className="flex items-center gap-1">
           <SolanaIcon size={13} />
-          <span className="text-black font-semibold text-[15px]">0.000</span>
+          <span className="text-black font-semibold text-[15px]">
+            {solBalance !== null ? solBalance.toFixed(4) : "0.000"}
+          </span>
         </div>
       </div>
 

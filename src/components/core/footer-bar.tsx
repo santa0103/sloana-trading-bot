@@ -10,13 +10,21 @@ const SOL_PRICE = 64.0;
 const DAYS = ["M", "T", "W", "T", "F", "S", "S"];
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-// Shared simulated SOL price hook
+// Shared simulated SOL price hook — now fetches from real API with fallback
 function useSimulatedSolPrice() {
   const [price, setPrice] = useState(64.0);
   useEffect(() => {
-    const i = setInterval(() => {
-      setPrice(v => parseFloat((v * (1 + (Math.random() - 0.5) * 0.008)).toFixed(2)));
-    }, 2500);
+    const fetchPrice = async () => {
+      try {
+        const res = await fetch("/api/sol-price");
+        const data = await res.json();
+        setPrice(data.price);
+      } catch {
+        // keep current price on error
+      }
+    };
+    fetchPrice();
+    const i = setInterval(fetchPrice, 10000);
     return () => clearInterval(i);
   }, []);
   return price;
@@ -290,11 +298,21 @@ export function FooterBar() {
   const [solBalance, setSolBalance] = useState(33.314);
 
   useEffect(() => {
-    // Simulate live balance fluctuation
-    const interval = setInterval(() => {
-      setUsdBalance(v => parseFloat((v * (1 + (Math.random() - 0.5) * 0.005)).toFixed(2)));
-      setSolBalance(v => parseFloat((v * (1 + (Math.random() - 0.5) * 0.003)).toFixed(3)));
-    }, 3000);
+    // Fetch real SOL price and compute USD balance
+    const update = async () => {
+      try {
+        const res = await fetch("/api/sol-price");
+        const data = await res.json();
+        const price = data.price ?? 64;
+        // solBalance is demo fixed at 33.314 — multiply by live price for USD
+        setSolBalance(prev => {
+          setUsdBalance(parseFloat((prev * price).toFixed(2)));
+          return prev;
+        });
+      } catch { /* keep current */ }
+    };
+    update();
+    const interval = setInterval(update, 10000);
     return () => clearInterval(interval);
   }, []);
 

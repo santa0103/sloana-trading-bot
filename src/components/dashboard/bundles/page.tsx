@@ -1,11 +1,43 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Search, Package } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Search, Package, Rocket, RefreshCw } from "lucide-react";
 import { SolanaIcon } from "@/components/core/solana-icon";
+
+type Launch = {
+  id: string;
+  name: string;
+  symbol: string;
+  launchMode: string;
+  status: string;
+  txSignature: string | null;
+  createdAt: number;
+};
 
 export function BundlesPage() {
   const [search, setSearch] = useState("");
+  const [launches, setLaunches] = useState<Launch[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/token-launch");
+      const data = await res.json();
+      setLaunches(data.launches || []);
+    } catch { /* ignore */ }
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const filtered = launches.filter(l =>
+    l.name.toLowerCase().includes(search.toLowerCase()) ||
+    l.symbol.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalLaunches = launches.length;
+  const totalPnl = 0; // would come from trade history in production
 
   return (
     <div className="flex flex-col gap-4">
@@ -15,17 +47,21 @@ export function BundlesPage() {
           <h1 className="text-lg font-semibold text-gray-900">Bundles</h1>
           <p className="text-[12px] text-gray-400">Manage your token launch bundles</p>
         </div>
-        <button className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-[12px] font-medium px-4 py-2 rounded transition-colors">
-          <Plus size={13} />
-          New Bundle
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={load} className="border border-gray-200 rounded p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors">
+            <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
+          </button>
+          <button className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-[12px] font-medium px-4 py-2 rounded transition-colors">
+            <Plus size={13} /> New Bundle
+          </button>
+        </div>
       </div>
 
       {/* Stat cards */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col items-center justify-center gap-1">
           <p className="text-[11px] text-gray-400">Total Launches</p>
-          <p className="text-2xl font-bold text-gray-900">0</p>
+          <p className="text-2xl font-bold text-gray-900">{totalLaunches}</p>
         </div>
         <div className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col items-center justify-center gap-1">
           <p className="text-[11px] text-gray-400">Best Launch</p>
@@ -36,7 +72,7 @@ export function BundlesPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col items-center justify-center gap-1">
           <p className="text-[11px] text-gray-400">Total PnL</p>
           <p className="text-2xl font-bold text-gray-900 flex items-center gap-1.5">
-            <SolanaIcon size={16} /> 0.00
+            <SolanaIcon size={16} /> {totalPnl.toFixed(2)}
           </p>
         </div>
       </div>
@@ -44,24 +80,48 @@ export function BundlesPage() {
       {/* Search */}
       <div className="relative w-64">
         <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+        <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
           placeholder="Search bundles..."
-          className="w-full border border-gray-200 rounded pl-8 pr-3 py-1.5 text-[12px] text-gray-700 placeholder-gray-300 bg-white focus:outline-none focus:border-green-400 transition-colors"
-        />
+          className="w-full border border-gray-200 rounded pl-8 pr-3 py-1.5 text-[12px] text-gray-700 placeholder-gray-300 bg-white focus:outline-none focus:border-green-400 transition-colors" />
       </div>
 
-      {/* Empty state */}
-      <div className="bg-white border border-gray-200 rounded-lg flex-1 flex flex-col items-center justify-center py-24 gap-3">
-        <Package size={36} className="text-gray-300" />
-        <p className="text-[13px] text-gray-400">No bundles found</p>
-        <button className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-[12px] font-medium px-4 py-2 rounded transition-colors">
-          <Plus size={13} />
-          Create your first bundle
-        </button>
-      </div>
+      {/* List or empty state */}
+      {filtered.length === 0 ? (
+        <div className="bg-white border border-gray-200 rounded-lg flex-1 flex flex-col items-center justify-center py-24 gap-3">
+          <Package size={36} className="text-gray-300" />
+          <p className="text-[13px] text-gray-400">No bundles found</p>
+          <button className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-[12px] font-medium px-4 py-2 rounded transition-colors">
+            <Plus size={13} /> Create your first bundle
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
+          {filtered.map(launch => (
+            <div key={launch.id} className="flex items-center gap-4 px-4 py-3">
+              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                <Rocket size={14} className="text-green-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-semibold text-gray-800">{launch.name}
+                  <span className="text-[11px] text-gray-400 font-normal ml-1">${launch.symbol}</span>
+                </p>
+                <p className="text-[10px] text-gray-400 font-mono truncate">{launch.txSignature || "pending..."}</p>
+              </div>
+              <div className="flex items-center gap-3 text-right shrink-0">
+                <div>
+                  <p className="text-[10px] text-gray-400">Mode</p>
+                  <p className="text-[12px] text-gray-700 capitalize">{launch.launchMode}</p>
+                </div>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                  launch.status === "launched" ? "bg-green-100 text-green-600" :
+                  launch.status === "failed" ? "bg-red-100 text-red-500" :
+                  "bg-yellow-100 text-yellow-600"
+                }`}>{launch.status}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
