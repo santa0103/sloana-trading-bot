@@ -28,6 +28,9 @@ yarn-error.log*
 *.pem
 .vscode/settings.json
 
+# svarog local data store
+.svarog-data/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

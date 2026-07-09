@@ -1,7 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readStore, writeStore } from "@/lib/store";
 
-// In-memory settings store — replace with DB/cookie in production
-let settings = {
+type Settings = {
+  sellSlippage: number;
+  buySlippage: number;
+  sniperTip: number;
+  bundleTip: number;
+  terminal: string;
+  notifications: boolean;
+  newUserMode: boolean;
+  theme: string;
+};
+
+const DEFAULTS: Settings = {
   sellSlippage: 25,
   buySlippage: 25,
   sniperTip: 0.002,
@@ -12,12 +23,17 @@ let settings = {
   theme: "light",
 };
 
+function getStore() { return readStore<Settings>("settings", DEFAULTS); }
+function saveStore(d: Settings) { writeStore("settings", d); }
+
 export async function GET() {
-  return NextResponse.json({ settings });
+  return NextResponse.json({ settings: getStore() });
 }
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  settings = { ...settings, ...body };
-  return NextResponse.json({ settings, saved: true });
+  const current = getStore();
+  const updated = { ...current, ...body };
+  saveStore(updated);
+  return NextResponse.json({ settings: updated, saved: true });
 }

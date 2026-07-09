@@ -1,18 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readStore, writeStore } from "@/lib/store";
 
-const launches: Array<{
+type Launch = {
   id: string;
   name: string;
   symbol: string;
   decimals: number;
   totalSupply: string;
+  description: string;
   status: "pending" | "created" | "failed";
   txSignature: string | null;
   createdAt: number;
-}> = [];
+};
+
+function getStore() { return readStore<Launch[]>("raydium-launches", []); }
+function saveStore(d: Launch[]) { writeStore("raydium-launches", d); }
 
 export async function GET() {
-  return NextResponse.json({ launches });
+  return NextResponse.json({ launches: getStore() });
 }
 
 export async function POST(req: NextRequest) {
@@ -23,30 +28,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "name and symbol are required" }, { status: 400 });
   }
 
-  const launch = {
+  const store = getStore();
+  const launch: Launch = {
     id: Math.random().toString(36).slice(2, 10),
-    name,
-    symbol,
+    name, symbol,
     decimals: Number(decimals) || 9,
     totalSupply: totalSupply || "1000000000",
     description: description || "",
-    status: "pending" as const,
+    status: "pending",
     txSignature: null,
     createdAt: Date.now(),
   };
+  store.push(launch);
+  saveStore(store);
 
-  launches.push(launch);
-
-  // Simulate token creation after 2s
   setTimeout(() => {
-    const idx = launches.findIndex(l => l.id === launch.id);
+    const current = getStore();
+    const idx = current.findIndex(l => l.id === launch.id);
     if (idx !== -1) {
-      launches[idx].status = "created";
-      launches[idx].txSignature = Array.from({ length: 64 }, () =>
-        "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789"[
-          Math.floor(Math.random() * 58)
-        ]
+      current[idx].status = "created";
+      current[idx].txSignature = Array.from({ length: 64 }, () =>
+        "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789"[Math.floor(Math.random() * 58)]
       ).join("");
+      saveStore(current);
     }
   }, 2000);
 

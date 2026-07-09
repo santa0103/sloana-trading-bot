@@ -1,16 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readStore, writeStore } from "@/lib/store";
 
-const batches: Array<{
+type Batch = {
   id: string;
   name: string;
   symbol: string;
+  description: string;
+  website: string;
+  xUrl: string;
+  telegram: string;
+  discord: string;
   deployCount: number;
   status: "queued" | "running" | "done";
   createdAt: number;
-}> = [];
+};
+
+function getStore() { return readStore<Batch[]>("spam-batches", []); }
+function saveStore(d: Batch[]) { writeStore("spam-batches", d); }
 
 export async function GET() {
-  return NextResponse.json({ batches });
+  return NextResponse.json({ batches: getStore() });
 }
 
 export async function POST(req: NextRequest) {
@@ -21,26 +30,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "name and symbol are required" }, { status: 400 });
   }
 
-  const batch = {
+  const store = getStore();
+  const batch: Batch = {
     id: Math.random().toString(36).slice(2, 10),
-    name,
-    symbol,
+    name, symbol,
     description: description || "",
     website: website || "",
     xUrl: xUrl || "",
     telegram: telegram || "",
     discord: discord || "",
     deployCount: 0,
-    status: "queued" as const,
+    status: "queued",
     createdAt: Date.now(),
   };
+  store.push(batch);
+  saveStore(store);
 
-  batches.push(batch);
-
-  // Simulate batch starting
   setTimeout(() => {
-    const idx = batches.findIndex(b => b.id === batch.id);
-    if (idx !== -1) batches[idx].status = "running";
+    const current = getStore();
+    const idx = current.findIndex(b => b.id === batch.id);
+    if (idx !== -1) { current[idx].status = "running"; saveStore(current); }
   }, 1000);
 
   return NextResponse.json({ batch }, { status: 201 });
