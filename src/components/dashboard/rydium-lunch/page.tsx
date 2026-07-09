@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import { ArrowLeft, ArrowRight, Wallet, Waves, Upload, Info, Coins, Shield, CheckCircle, AlertTriangle } from "lucide-react";
-import { useState, useRef } from "react";
 
 const STEPS = ["Token basics", "Supply", "Create"];
 
